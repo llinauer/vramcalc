@@ -1,0 +1,31 @@
+[project]
+name = "vramcalc"
+version = "0.1.0"
+description = "Estimate GPU VRAM usage for inference runtimes from Hugging Face model ids."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "typer>=0.12.5",
+  "rich>=13.9.4",
+  "huggingface-hub>=0.30.0",
+  "pydantic>=2.9.2",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.3",
+  "ruff>=0.6.9",
+]
+
+[project.scripts]
+vramcalc = "vramcalc.cli:app"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
