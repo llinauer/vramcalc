@@ -19,10 +19,12 @@ class VllmEstimator:
 
         weights_gib = bytes_to_gib(total_params * bpe)
 
+        assumed_context_length = req.context_length or int(arch.get("default_context_length", 4096))
+
         # KV cache estimate: 2 tensors (K,V) x layers x tokens x kv_heads x head_dim x dtype
         n_kv = arch["num_key_value_heads"]
         head_dim = h // arch["num_attention_heads"]
-        tokens = req.context_length * req.concurrency
+        tokens = assumed_context_length * req.concurrency
         kv_bytes = 2 * l * tokens * n_kv * head_dim * bpe
         kv_cache_gib = bytes_to_gib(kv_bytes)
 
@@ -35,7 +37,7 @@ class VllmEstimator:
 
         assumptions = [
             "Coarse decoder-only transformer parameter estimate",
-            "KV cache based on context_length * concurrency",
+            f"KV cache based on assumed_context_length={assumed_context_length} and concurrency",
             "Fixed runtime overhead heuristic for vLLM",
             "Does not yet model tensor/pipeline parallel partitioning",
         ]
@@ -43,6 +45,7 @@ class VllmEstimator:
         return EstimateResult(
             total_gib=total,
             fits=fits,
+            assumed_context_length=assumed_context_length,
             breakdown=EstimateBreakdown(
                 weights_gib=weights_gib,
                 kv_cache_gib=kv_cache_gib,

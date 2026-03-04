@@ -5,6 +5,13 @@ from huggingface_hub import hf_hub_download
 
 
 REQUIRED_FIELDS = ["hidden_size", "num_hidden_layers", "num_attention_heads", "vocab_size"]
+CONTEXT_LENGTH_KEYS = [
+    "max_position_embeddings",
+    "max_sequence_length",
+    "n_positions",
+    "seq_length",
+    "model_max_length",
+]
 
 
 def _flatten_dict(d: Mapping, parent_key: str = "", sep: str = ".") -> dict[str, object]:
@@ -51,6 +58,18 @@ def extract_arch_info(cfg: dict) -> dict:
     n_kv_heads_raw = _get_value(flat_cfg, "num_key_value_heads", num_attention_heads)
     intermediate_size_raw = _get_value(flat_cfg, "intermediate_size", 4 * hidden_size)
 
+    default_context_length = None
+    for key in CONTEXT_LENGTH_KEYS:
+        value = _get_value(flat_cfg, key)
+        if value is not None:
+            try:
+                default_context_length = int(value)
+                break
+            except (TypeError, ValueError):
+                continue
+    if default_context_length is None:
+        default_context_length = 4096
+
     return {
         "hidden_size": hidden_size,
         "num_hidden_layers": int(_get_value(flat_cfg, "num_hidden_layers")),
@@ -59,4 +78,5 @@ def extract_arch_info(cfg: dict) -> dict:
         "vocab_size": int(_get_value(flat_cfg, "vocab_size")),
         "intermediate_size": int(intermediate_size_raw),
         "model_type": str(_get_value(flat_cfg, "model_type", "unknown")),
+        "default_context_length": default_context_length,
     }

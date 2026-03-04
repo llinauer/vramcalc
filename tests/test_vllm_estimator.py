@@ -14,6 +14,7 @@ def fake_arch() -> dict:
         "num_key_value_heads": 8,
         "vocab_size": 32000,
         "intermediate_size": 4096,
+        "default_context_length": 8192,
     }
 
 
@@ -59,6 +60,7 @@ def test_vllm_estimate_breakdown_matches_formula(monkeypatch: pytest.MonkeyPatch
     expected_act = 0.08 * (expected_weights + expected_kv)
     expected_total = expected_weights + expected_kv + expected_act + 1.0
 
+    assert result.assumed_context_length == 2048
     assert result.breakdown.weights_gib == pytest.approx(expected_weights)
     assert result.breakdown.kv_cache_gib == pytest.approx(expected_kv)
     assert result.breakdown.activations_gib == pytest.approx(expected_act)
@@ -89,3 +91,14 @@ def test_kv_cache_scales_with_concurrency(monkeypatch: pytest.MonkeyPatch, fake_
     r2 = VllmEstimator().estimate(req2)
 
     assert r2.breakdown.kv_cache_gib == pytest.approx(r1.breakdown.kv_cache_gib * 4)
+
+
+def test_uses_model_default_context_length_when_not_provided(
+    monkeypatch: pytest.MonkeyPatch, fake_arch: dict
+) -> None:
+    _mock_hf(monkeypatch, fake_arch)
+
+    req = EstimateRequest(runtime="vllm", model="dummy/model", context_length=None, concurrency=1)
+    result = VllmEstimator().estimate(req)
+
+    assert result.assumed_context_length == 8192

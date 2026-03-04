@@ -17,7 +17,7 @@ def estimate(
     model: str = typer.Option(..., help="Hugging Face model id"),
     revision: str | None = typer.Option(None, help="HF revision"),
     dtype: str = typer.Option("bf16", help="Weight/KV dtype"),
-    context_length: int = typer.Option(4096, help="Max context length"),
+    context_length: int | None = typer.Option(None, help="Max context length (defaults to model config)"),
     concurrency: int = typer.Option(1, help="Concurrent sequences"),
     gpu_memory_gib: float | None = typer.Option(None, help="GPU memory in GiB for fit check"),
     as_json: bool = typer.Option(False, "--json", help="Output JSON"),
@@ -42,6 +42,7 @@ def estimate(
     table = Table(title=f"vramcalc: {model} ({runtime})")
     table.add_column("Component")
     table.add_column("GiB", justify="right")
+    table.add_row("Assumed context length", str(result.assumed_context_length))
     table.add_row("Weights", f"{result.breakdown.weights_gib:.3f}")
     table.add_row("KV cache", f"{result.breakdown.kv_cache_gib:.3f}")
     table.add_row("Activations", f"{result.breakdown.activations_gib:.3f}")

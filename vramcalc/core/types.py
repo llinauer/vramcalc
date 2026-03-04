@@ -6,7 +6,7 @@ class EstimateRequest(BaseModel):
     model: str
     revision: str | None = None
     dtype: str = Field(default="bf16")
-    context_length: int = Field(default=4096, ge=1)
+    context_length: int | None = Field(default=None, ge=1)
     concurrency: int = Field(default=1, ge=1)
     gpu_memory_gib: float | None = Field(default=None, gt=0)
 
@@ -21,5 +21,6 @@ class EstimateBreakdown(BaseModel):
 class EstimateResult(BaseModel):
     total_gib: float
     fits: bool | None
+    assumed_context_length: int
     breakdown: EstimateBreakdown
     assumptions: list[str]
