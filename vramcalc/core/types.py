@@ -22,5 +22,8 @@ class EstimateResult(BaseModel):
     total_gib: float
     fits: bool | None
     assumed_context_length: int
+    inferred_quantization: str
+    quantization_source: str
+    quantization_confidence: str
     breakdown: EstimateBreakdown
     assumptions: list[str]

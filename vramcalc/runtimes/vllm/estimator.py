@@ -38,6 +38,12 @@ class VllmEstimator:
         assumptions = [
             "Coarse decoder-only transformer parameter estimate",
             f"KV cache based on assumed_context_length={assumed_context_length} and concurrency",
+            (
+                "Inferred quantization="
+                f"{arch.get('quantization', 'unknown')} "
+                f"(source={arch.get('quantization_source', 'unknown')}, "
+                f"confidence={arch.get('quantization_confidence', 'low')})"
+            ),
             "Fixed runtime overhead heuristic for vLLM",
             "Does not yet model tensor/pipeline parallel partitioning",
         ]
@@ -46,6 +52,9 @@ class VllmEstimator:
             total_gib=total,
             fits=fits,
             assumed_context_length=assumed_context_length,
+            inferred_quantization=str(arch.get("quantization", "unknown")),
+            quantization_source=str(arch.get("quantization_source", "unknown")),
+            quantization_confidence=str(arch.get("quantization_confidence", "low")),
             breakdown=EstimateBreakdown(
                 weights_gib=weights_gib,
                 kv_cache_gib=kv_cache_gib,
@@ -57,5 +66,5 @@ class VllmEstimator:
 
     def estimate(self, req: EstimateRequest) -> EstimateResult:
         cfg = load_model_config(req.model, req.revision)
-        arch = extract_arch_info(cfg)
+        arch = extract_arch_info(cfg, model=req.model, revision=req.revision)
         return self._estimate_from_arch(req, arch)
