@@ -91,7 +91,7 @@ def main() -> None:
     )
 
     cfg = load_model_config(args.model, args.revision)
-    arch = extract_arch_info(cfg)
+    arch = extract_arch_info(cfg, model=args.model, revision=args.revision)
     est = VllmEstimator()._estimate_from_arch(req, arch)
 
     gpu_name = _gpu_name(args.gpu_index)
