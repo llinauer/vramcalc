@@ -4,10 +4,7 @@ from vramcalc.hf.resolve import extract_arch_info, load_model_config
 
 
 class VllmEstimator:
-    def estimate(self, req: EstimateRequest) -> EstimateResult:
-        cfg = load_model_config(req.model, req.revision)
-        arch = extract_arch_info(cfg)
-
+    def _estimate_from_arch(self, req: EstimateRequest, arch: dict) -> EstimateResult:
         bpe = bytes_per_dtype(req.dtype)
 
         # Coarse param estimate for decoder-only transformer
@@ -54,3 +51,8 @@ class VllmEstimator:
             ),
             assumptions=assumptions,
         )
+
+    def estimate(self, req: EstimateRequest) -> EstimateResult:
+        cfg = load_model_config(req.model, req.revision)
+        arch = extract_arch_info(cfg)
+        return self._estimate_from_arch(req, arch)

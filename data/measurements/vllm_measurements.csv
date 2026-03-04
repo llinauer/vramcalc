@@ -1,0 +1,1 @@
+timestamp,model,revision,dtype,context_length,concurrency,gpu_name,gpu_index,gpu_memory_gib,hidden_size,num_hidden_layers,num_attention_heads,num_key_value_heads,vocab_size,intermediate_size,baseline_used_gib,peak_used_gib,measured_total_gib,estimated_total_gib,error_gib,error_pct,notes
