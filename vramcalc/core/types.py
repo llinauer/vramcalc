@@ -25,5 +25,7 @@ class EstimateResult(BaseModel):
     inferred_quantization: str
     quantization_source: str
     quantization_confidence: str
+    weight_bytes_per_param: float
+    kv_bytes_per_element: float
     breakdown: EstimateBreakdown
     assumptions: list[str]

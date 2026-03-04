@@ -47,6 +47,8 @@ def estimate(
         "Inferred quantization",
         f"{result.inferred_quantization} ({result.quantization_source}, {result.quantization_confidence})",
     )
+    table.add_row("Weight bytes/param", f"{result.weight_bytes_per_param:g}")
+    table.add_row("KV bytes/elem", f"{result.kv_bytes_per_element:g}")
     table.add_row("Weights", f"{result.breakdown.weights_gib:.3f}")
     table.add_row("KV cache", f"{result.breakdown.kv_cache_gib:.3f}")
     table.add_row("Activations", f"{result.breakdown.activations_gib:.3f}")

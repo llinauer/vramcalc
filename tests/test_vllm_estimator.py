@@ -25,7 +25,7 @@ def _mock_hf(monkeypatch: pytest.MonkeyPatch, arch: dict) -> None:
     )
     monkeypatch.setattr(
         "vramcalc.runtimes.vllm.estimator.extract_arch_info",
-        lambda cfg: arch,
+        lambda cfg, model=None, revision=None: arch,
     )
 
 
@@ -61,6 +61,8 @@ def test_vllm_estimate_breakdown_matches_formula(monkeypatch: pytest.MonkeyPatch
     expected_total = expected_weights + expected_kv + expected_act + 1.0
 
     assert result.assumed_context_length == 2048
+    assert result.weight_bytes_per_param == 2
+    assert result.kv_bytes_per_element == 2
     assert result.breakdown.weights_gib == pytest.approx(expected_weights)
     assert result.breakdown.kv_cache_gib == pytest.approx(expected_kv)
     assert result.breakdown.activations_gib == pytest.approx(expected_act)
@@ -102,3 +104,21 @@ def test_uses_model_default_context_length_when_not_provided(
     result = VllmEstimator().estimate(req)
 
     assert result.assumed_context_length == 8192
+
+
+def test_quantization_changes_weight_precision_only(monkeypatch: pytest.MonkeyPatch, fake_arch: dict) -> None:
+    quant_arch = dict(fake_arch)
+    quant_arch.update(
+        {
+            "quantization": "awq-4bit",
+            "quantization_source": "config",
+            "quantization_confidence": "high",
+        }
+    )
+    _mock_hf(monkeypatch, quant_arch)
+
+    req = EstimateRequest(runtime="vllm", model="dummy/model", dtype="bf16", context_length=1024)
+    result = VllmEstimator().estimate(req)
+
+    assert result.weight_bytes_per_param == 0.5
+    assert result.kv_bytes_per_element == 2
